@@ -1,21 +1,20 @@
-#ifndef _TEST_ODBC_H_
-#define _TEST_ODBC_H_
+#ifndef _TEST_MYSQL_H_
+#define _TEST_MYSQL_H_
 
 #include "TestSuite.h"
-#include "../include/qtl_odbc.hpp"
 
 namespace qtl
 {
-	namespace odbc
+	namespace postgres
 	{
 		class database;
 	}
 }
 
-class TestOdbc : public TestSuite
+class TestPostgres : public TestSuite
 {
 public:
-	TestOdbc();
+	TestPostgres();
 
 private:
 	void test_dual();
@@ -27,15 +26,12 @@ private:
 	void test_iterator();
 	void test_insert_blob();
 	void test_select_blob();
-	void test_insert_stream();
-	void test_fetch_stream();
+	void test_any();
 
 private:
-	uint64_t id;
-	qtl::odbc::environment m_env;
-	qtl::odbc::database m_db;
+	int32_t id;
+	void connect(qtl::postgres::database& db);
 	void get_md5(std::istream& is, unsigned char* result);
-	static void print_hex(const unsigned char* data, size_t n);
 };
 
-#endif //_TEST_ODBC_H_
+#endif //_TEST_MYSQL_H_

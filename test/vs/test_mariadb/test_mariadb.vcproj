@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="test_sqlite"
-	ProjectGUID="{8C793DE3-283E-460C-A876-29455F68CB45}"
-	RootNamespace="test_sqlite"
+	Name="test_mariadb"
+	ProjectGUID="{2A539BFA-B934-4192-A029-524593AEC6B8}"
+	RootNamespace="test_mariadb"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -20,7 +20,6 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -41,13 +40,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="D:\mariadb\include\mysql"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -61,8 +60,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sqlite.lib cpptest.lib"
+				AdditionalDependencies="libmariadb.lib ws2_32.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="D:\mariadb\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -97,7 +97,6 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -118,11 +117,11 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="D:\mariadb\include\mysql"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -136,8 +135,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sqlite.lib cpptest.lib"
+				AdditionalDependencies="libmariadb.lib ws2_32.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="D:\mariadb\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -179,26 +179,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\md5.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -219,7 +199,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\TestSqlite.cpp"
+				RelativePath="..\..\TestMariaDB.cpp"
 				>
 			</File>
 		</Filter>
@@ -230,14 +210,6 @@
 			>
 			<File
 				RelativePath="..\..\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\TestSqlite.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\TestSuite.h"
 				>
 			</File>
 		</Filter>

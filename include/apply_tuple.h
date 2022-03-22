@@ -6,7 +6,21 @@
 #include <type_traits>
 #include <utility>
 
-#if __cplusplus < 201703L
+namespace qtl
+{
+
+namespace detail
+{
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+template <class F, class Tuple>
+inline constexpr decltype(auto) apply_tuple(F&& f, Tuple&& t)
+{
+	return std::apply(std::forward<F>(f), std::forward<Tuple>(t));
+}
+
+#else
 
 namespace detail
 {
@@ -48,14 +62,10 @@ inline auto apply_tuple(F&& f, T&& t)
     >::value>::apply_tuple(std::forward<F>(f), std::forward<T>(t));
 }
 
-#else
+#endif // C++17
 
-template <class F, class Tuple>
-inline constexpr decltype(auto) apply_tuple(F&& f, Tuple&& t)
-{
-	return std::apply(std;:forward<F>(f), std::forward<Tuple>(t));
 }
 
-#endif // C++17
+}
 
 #endif //_APPLY_TUPLE_H_

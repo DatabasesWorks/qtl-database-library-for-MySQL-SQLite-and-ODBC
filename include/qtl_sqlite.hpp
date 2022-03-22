@@ -4,6 +4,7 @@
 #include "sqlite3.h"
 #include <algorithm>
 #include <array>
+#include <sstream>
 #include "qtl_common.hpp"
 
 namespace qtl
@@ -224,6 +225,48 @@ public:
 		bind_field(index, value.data(), value.size());
 	}
 
+#ifdef _QTL_ENABLE_CPP17
+
+	template<typename T>
+	inline void bind_field(size_t index, std::optional<T>&& value)
+	{
+		int type = get_column_type(index);
+		if (type == SQLITE_NULL)
+		{
+			value.reset();
+		}
+		else
+		{
+			qtl::bind_field(*this, index, *value);
+		}
+	}
+
+	inline void bind_field(size_t index, std::any&& value)
+	{
+		int type = get_column_type(index);
+		switch(type)
+		{
+		case SQLITE_NULL:
+			value.reset();
+		case SQLITE_INTEGER:
+			value = sqlite3_column_int64(m_stmt, index);
+			break;
+		case SQLITE_FLOAT:
+			value = sqlite3_column_double(m_stmt, index);
+			break;
+		case SQLITE_TEXT:
+			value.emplace<std::string_view>((const char*)sqlite3_column_text(m_stmt, index), sqlite3_column_bytes(m_stmt, index));
+			break;
+		case SQLITE_BLOB:
+			value.emplace<const_blob_data>(sqlite3_column_text(m_stmt, index), sqlite3_column_bytes(m_stmt, index));
+			break;
+		default:
+			throw sqlite::error(SQLITE_MISMATCH);
+		}
+	}
+
+#endif // C++17
+
 	size_t find_field(const char* name) const
 	{
 		size_t count=get_column_count();
@@ -368,13 +411,13 @@ public:
 		return count>0;;
 	}
 
-	int affetced_rows()
+	int affetced_rows() const
 	{
 		sqlite3* db=sqlite3_db_handle(m_stmt);
 		return db ? sqlite3_changes(db) : 0;
 	}
 
-	int64_t insert_id()
+	int64_t insert_id() const
 	{
 		sqlite3* db=sqlite3_db_handle(m_stmt);
 		return db ? sqlite3_last_insert_rowid(db) : 0;
@@ -531,6 +574,9 @@ public:
 	void swap( blobbuf& other )
 	{
 		std::swap(m_blob, other.m_blob);
+		std::swap(m_inbuf, other.m_inbuf);
+		std::swap(m_outbuf, other.m_outbuf);
+		std::swap(m_size, other.m_size);
 		std::swap(m_inpos, other.m_inpos);
 		std::swap(m_outpos, other.m_outpos);
 
@@ -606,7 +652,7 @@ public:
 		return this;
 	}
 
-	std::streamoff blob_size() const { return std::streamoff(m_size); }
+	std::streamoff size() const { return std::streamoff(m_size); }
 
 	void flush() 
 	{
@@ -686,7 +732,7 @@ protected:
 			overflow();
 
 		off_type count=egptr()-eback();
-		pos_type next_pos;
+		pos_type next_pos=0;
 		if(count==0 && eback()==m_inbuf.data())
 		{
 			setg(m_inbuf.data(), m_inbuf.data(), m_inbuf.data()+m_inbuf.size());
@@ -700,9 +746,9 @@ protected:
 			return traits_type::eof();
 
 		count=std::min(count, m_size-next_pos);
-		if(sqlite3_blob_read(m_blob, eback(), count, next_pos)!=SQLITE_OK)
+		m_inpos = next_pos;
+		if(sqlite3_blob_read(m_blob, eback(), count, m_inpos)!=SQLITE_OK)
 			return traits_type::eof();
-		m_inpos=next_pos;
 		setg(eback(), eback(), eback()+count);
 		return traits_type::to_int_type(*gptr());
 	}
@@ -740,7 +786,7 @@ protected:
 			if(m_outpos>=m_size)
 				return traits_type::eof();
 			if(sqlite3_blob_write(m_blob, &c, 1, m_outpos)!=SQLITE_OK)
-				traits_type::eof();
+				return traits_type::eof();
 			auto intersection = interval_intersection(m_inpos, egptr()-eback(), m_outpos, 1);
 			if(intersection.first!=intersection.second)
 			{
@@ -796,10 +842,13 @@ private:
 		{
 		case std::ios_base::beg:
 			result=off;
+			break;
 		case std::ios_base::cur:
 			result=position+off;
+			break;
 		case std::ios_base::end:
 			result=m_size-off;
+			break;
 		}
 		if(result>m_size)
 			result=m_size;
@@ -927,7 +976,7 @@ public:
 		return const_cast<blobbuf*>(&m_buffer);
 	}
 
-	std::streamoff blob_size() const { return m_buffer.blob_size(); }
+	std::streamoff blob_size() const { return m_buffer.size(); }
 
 private:
 	blobbuf m_buffer;
@@ -985,7 +1034,7 @@ public:
 		return const_cast<blobbuf*>(&m_buffer);
 	}
 
-	std::streamoff blob_size() const { return m_buffer.blob_size(); }
+	std::streamoff blob_size() const { return m_buffer.size(); }
 
 private:
 	blobbuf m_buffer;
@@ -1043,7 +1092,7 @@ public:
 		return const_cast<blobbuf*>(&m_buffer);
 	}
 
-	std::streamoff blob_size() const { return m_buffer.blob_size(); }
+	std::streamoff blob_size() const { return m_buffer.size(); }
 
 private:
 	blobbuf m_buffer;
